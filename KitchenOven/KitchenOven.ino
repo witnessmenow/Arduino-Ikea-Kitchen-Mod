@@ -13,6 +13,7 @@
 // Search for "Neopixel" in the Arduino Library manager
 // https://github.com/adafruit/Adafruit_NeoPixel
 
+#define ENCODER_DO_NOT_USE_INTERRUPTS
 #include <Encoder.h>
 // Library for using the Rotary Encoder
 // Search for "encoder" in the Arduino Library manager and select the one
@@ -61,7 +62,7 @@ int currentColourCode = 0;
 
 unsigned long reButtonCoolDown = 1000;
 unsigned long reButtonReadAllowedTime = 0;
-
+unsigned long ovenTimeout = 0;
 long oldPosition  = -999;
 
 int buttons[NUM_BUTTONS] = {blueButton, greenButton, whiteButton, redButton};
@@ -90,7 +91,7 @@ void setup() {
 
   pixels.begin();
   turnOffAllPixels();
-  //setAllPixels(getColour(0));
+  setAllPixels(getColour(0));
 }
 
 void setAllPixels(uint32_t targetColour) {
@@ -186,12 +187,14 @@ void loop() {
   }
 
   if (newColour || newBrightness) {
+    ovenTimeout = millis() + 300000;
     colour = getColour(currentColourCode);
     lightsAreOn = true;
     setAllPixels(colour);
   }
 
-
-
-
+  if (millis() == ovenTimeout && lightsAreOn) {
+    lightsAreOn = false;
+    turnOffAllPixels();
+  }
 }
