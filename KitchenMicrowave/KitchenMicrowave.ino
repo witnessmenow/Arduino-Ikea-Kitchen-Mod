@@ -18,12 +18,12 @@
 // Search for "TM1637" in the Arduino Library manager
 // https://github.com/avishorp/TM1637
 
-#define ENCODER_DO_NOT_USE_INTERRUPTS
+//#define ENCODER_DO_NOT_USE_INTERRUPTS
 #include <Encoder.h>
 // Library for using the Rotary Encoder
-// Search for "encoder" in the Arduino Library manager and select the one
-// by Paul Stoffregen
-// https://github.com/PaulStoffregen/Encoder
+// The original library by Paul Stoffregen does not work with
+// interupts and the ESP8266 anymore, here is a modified version
+// https://github.com/RLars/Encoder
 
 #include <ezTime.h>
 
@@ -79,8 +79,8 @@ unsigned long countDownDue = 0;
 
 long oldPosition  = -999;
 
-char ssid[] = "wifi";         // your network SSID (name)
-char password[] = "yourwifipassword"; // your network password
+char ssid[] = "SSID";         // your network SSID (name)
+char password[] = "password"; // your network password
 
 boolean dotsOn;
 
@@ -154,15 +154,15 @@ void setup() {
   //delay(5000);
 
   // Or country codes for countries that do not span multiple timezones
-  myTZ.setLocation(F("America/Toronto"));
-  Serial.print(F("Time in NY:         "));
+  myTZ.setLocation(F("Europe/Dublin"));
+  Serial.print(F("Time in Ireland:         "));
   Serial.println(myTZ.dateTime());
 
   colour = pixels.Color(255, 255, 0);
 
   pinMode(reButtonPin, INPUT_PULLUP);
-  pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW);
+  pinMode(BUZZER_PIN, INPUT);
+  //digitalWrite(BUZZER_PIN, LOW); //Buzzer is active LOW
 
   // Get current Position
   oldPosition = myEnc.read();
@@ -258,18 +258,22 @@ void updateTimer(int sec) {
 
 void timerFinished() {
   turnOffAllPixels();
+  updateTimer(0);
   microwaveDoneBuzzer();
   microwaveOn = false;
 }
 
 void microwaveDoneBuzzer() {
+  pinMode(BUZZER_PIN, OUTPUT);
   for (int i = 0; i < 3; i++)
   {
     tone(BUZZER_PIN, 2000, 500);
     delay(700);
     noTone(BUZZER_PIN);
+    //digitalWrite(BUZZER_PIN, LOW); //Buzzer is active LOW
     delay(350);
   }
+  pinMode(BUZZER_PIN, INPUT);
 }
 
 void updateLeds() {
